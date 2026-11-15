@@ -1,0 +1,6 @@
+{
+  "name": "Diario Digital Tecnológico",
+  "description": "Plataforma editorial de noticias tecnológicas de alto rendimiento y arquitectura Django 5.x + MySQL 8.0 con panel editorial, optimización WebP, auditoría histórica, publicidad programada y SEO avanzado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

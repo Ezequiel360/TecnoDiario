@@ -1,0 +1,340 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  {# ======================================================================== #}
+  {# BLOQUE SEO Y METADATOS DINÁMICOS (Meta Title, Description & Canonical)  #}
+  {# ======================================================================== #}
+  <title>{% block meta_title %}{{ seo_global.site_name|default:"Diario Digital Tecnológico" }} — Periodismo de Ingeniería, IA, Hardware y Ciberseguridad{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ seo_global.meta_description_default|default:'Diario Digital de Noticias Tecnológicas: análisis de semiconductores, inteligencia artificial, ciberseguridad y arquitectura de software.' }}{% endblock %}" />
+  <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large{% endblock %}" />
+  <link rel="canonical" href="{% block canonical_url %}{{ seo_global.canonical_url|default:request.build_absolute_uri }}{% endblock %}" />
+
+  {# ======================================================================== #}
+  {# OPEN GRAPH PROTOCOL (Facebook, LinkedIn, Discord, WhatsApp, Telegram)   #}
+  {# ======================================================================== #}
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:site_name" content="{{ seo_global.site_name|default:'Diario Digital Tecnológico' }}" />
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}{{ seo_global.site_name|default:'Diario Digital Tecnológico' }}{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}{{ seo_global.meta_description_default }}{% endblock %}" />
+  <meta property="og:url" content="{% block og_url %}{{ seo_global.canonical_url|default:request.build_absolute_uri }}{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{% if seo_global.og_image_default %}{{ seo_global.og_image_default }}{% else %}{{ seo_global.site_url }}/static/img/og-default-1200x630.webp{% endif %}{% endblock %}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  {# ======================================================================== #}
+  {# TWITTER / X CARDS (summary_large_image)                                  #}
+  {# ======================================================================== #}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@{{ seo_global.twitter_site|default:'DiarioTech' }}" />
+  <meta name="twitter:title" content="{% block twitter_title %}{{ seo_global.site_name|default:'Diario Digital Tecnológico' }}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}{{ seo_global.meta_description_default }}{% endblock %}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{% if seo_global.og_image_default %}{{ seo_global.og_image_default }}{% else %}{{ seo_global.site_url }}/static/img/og-default-1200x630.webp{% endif %}{% endblock %}" />
+
+  {# Tipografías Editoriales: Playfair Display, Plus Jakarta Sans y JetBrains Mono #}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  {# TailwindCSS v3.4 CDN + Configuración de Sistema de Diseño Editorial #}
+  <script src="https://cdn.tailwindcss.com?plugins=typography,forms"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            papel: {
+              base: '#FBF9F5',
+              secundario: '#F4F1EA',
+              elevado: '#EBE6DF',
+              borde: '#D6CEBE'
+            },
+            tinta: {
+              primaria: '#1C1917',
+              secundaria: '#57534E',
+              atenuada: '#78716C'
+            },
+            editorial: {
+              terracota: '#9A3412',
+              terracotaHover: '#7C2D12',
+              bosque: '#14532D'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col bg-papel-base text-tinta-primaria font-sans antialiased selection:bg-editorial-terracota selection:text-white">
+
+  {# Enlace de accesibilidad para saltar al contenido principal #}
+  <a href="#contenido-principal" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-tinta-primaria focus:text-papel-base focus:rounded">
+    Saltar al contenido principal
+  </a>
+
+  {# ======================================================================== #}
+  {# BLOQUE DE BANNER SUPERIOR (SLOT: HEADER_TOP)                            #}
+  {# ======================================================================== #}
+  {% block banner_header_top %}
+    {% if banners_publicitarios.HEADER_TOP %}
+      <aside aria-label="Publicidad superior" class="bg-papel-secundario border-b border-papel-borde py-2.5 px-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-tinta-secundaria">
+            <span class="font-mono uppercase tracking-wider text-[10px] text-editorial-terracota font-semibold">
+              Espacio Patrocinado
+            </span>
+            <span aria-hidden="true">·</span>
+            <span class="font-medium text-tinta-primaria">{{ banners_publicitarios.HEADER_TOP.titulo }}</span>
+            <span aria-hidden="true" class="hidden md:inline">·</span>
+            <span class="hidden md:inline text-tinta-atenuada">{{ banners_publicitarios.HEADER_TOP.cliente }}</span>
+          </div>
+          <a href="{% url 'publicidad:registrar_clic' banners_publicitarios.HEADER_TOP.pk %}"
+             target="_blank"
+             rel="sponsored noopener noreferrer"
+             class="font-mono text-[11px] font-semibold text-editorial-terracota hover:underline shrink-0">
+            Conocer más →
+          </a>
+        </div>
+      </aside>
+    {% endif %}
+  {% endblock %}
+
+  {# ======================================================================== #}
+  {# CABECERA Y NAVEGACIÓN PRINCIPAL (3 Zonas: Marca, Secciones, Buscador)   #}
+  {# ======================================================================== #}
+  <header class="sticky top-0 z-40 bg-papel-base/95 backdrop-blur border-b border-papel-borde">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="h-20 flex items-center justify-between gap-6">
+        {# Zona 1: Identidad del Diario #}
+        <div class="shrink-0">
+          <a href="{% url 'noticias:portada' %}" class="group block">
+            <span class="block font-serif text-2xl sm:text-3xl font-bold tracking-tight text-tinta-primaria group-hover:text-editorial-terracota transition-colors">
+              {{ seo_global.site_name|default:"Diario Digital Tecnológico" }}
+            </span>
+            <span class="block font-mono text-[10px] uppercase tracking-widest text-tinta-atenuada mt-0.5">
+              Edición de Ingeniería, Ciencia de Datos y Ciberseguridad
+            </span>
+          </a>
+        </div>
+
+        {# Zona 2: Navegación Principal por Categorías (Desktop) #}
+        <nav aria-label="Secciones editoriales" class="hidden lg:flex items-center gap-6 text-sm font-medium text-tinta-secundaria">
+          <a href="{% url 'noticias:portada' %}"
+             class="py-1 transition-colors hover:text-tinta-primaria {% if request.resolver_match.url_name == 'portada' %}text-tinta-primaria font-semibold border-b-2 border-editorial-terracota{% endif %}">
+            Portada
+          </a>
+          {% for cat in categorias_menu %}
+            <a href="{% url 'noticias:por_categoria' cat.slug %}"
+               class="py-1 transition-colors hover:text-tinta-primaria {% if categoria_actual and categoria_actual.slug == cat.slug %}text-tinta-primaria font-semibold border-b-2 border-editorial-terracota{% endif %}">
+              {{ cat.nombre }}
+            </a>
+          {% endfor %}
+        </nav>
+
+        {# Zona 3: Buscador Rápido y Acceso Editorial #}
+        <div class="flex items-center gap-3">
+          <form action="{% url 'noticias:buscar' %}" method="get" role="search" class="hidden sm:flex items-center">
+            <label for="buscador-cabecera" class="sr-only">Buscar noticias</label>
+            <div class="relative">
+              <input
+                id="buscador-cabecera"
+                type="search"
+                name="q"
+                value="{{ termino_busqueda|default:'' }}"
+                placeholder="Buscar silicio, IA, CVE..."
+                class="w-48 xl:w-64 pl-3 pr-8 py-1.5 text-xs bg-papel-secundario border border-papel-borde rounded text-tinta-primaria placeholder:text-tinta-atenuada focus:outline-none focus:border-tinta-primaria"
+              />
+              <button type="submit" aria-label="Ejecutar búsqueda" class="absolute right-2 top-1/2 -translate-y-1/2 text-tinta-atenuada hover:text-tinta-primaria text-xs font-mono">
+                ↵
+              </button>
+            </div>
+          </form>
+
+          {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'admin:index' %}"
+               class="px-3.5 py-2 text-xs font-medium bg-tinta-primaria text-papel-base rounded hover:bg-editorial-terracota transition-colors">
+              Panel Editorial
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Barra de Categorías y Buscador para Tablet y Móvil #}
+      <div class="lg:hidden py-3 border-t border-papel-elevado flex flex-col gap-3">
+        <nav aria-label="Secciones móvil" class="flex items-center gap-4 overflow-x-auto pb-1 text-xs font-medium text-tinta-secundaria">
+          <a href="{% url 'noticias:portada' %}" class="shrink-0 hover:text-tinta-primaria">Portada</a>
+          {% for cat in categorias_menu %}
+            <a href="{% url 'noticias:por_categoria' cat.slug %}" class="shrink-0 hover:text-tinta-primaria">
+              {{ cat.nombre }}
+            </a>
+          {% endfor %}
+        </nav>
+        <form action="{% url 'noticias:buscar' %}" method="get" role="search" class="sm:hidden flex gap-2">
+          <label for="buscador-movil" class="sr-only">Buscar en el diario</label>
+          <input
+            id="buscador-movil"
+            type="search"
+            name="q"
+            value="{{ termino_busqueda|default:'' }}"
+            placeholder="Buscar en título, resumen y contenido..."
+            class="flex-1 px-3 py-1.5 text-xs bg-papel-secundario border border-papel-borde rounded"
+          />
+          <button type="submit" class="px-3 py-1.5 text-xs font-medium bg-tinta-primaria text-papel-base rounded">
+            Buscar
+          </button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  {# ======================================================================== #}
+  {# MENSAJES FLASH DEL SISTEMA (Confirmaciones de Newsletter, Alertas, etc) #}
+  {# ======================================================================== #}
+  {% if messages %}
+    <section aria-label="Notificaciones del sistema" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div class="space-y-2">
+        {% for message in messages %}
+          <div class="p-4 rounded border text-sm flex items-center justify-between {% if message.tags == 'error' %}bg-red-50 border-red-300 text-red-900{% elif message.tags == 'warning' %}bg-amber-50 border-amber-300 text-amber-900{% else %}bg-emerald-50 border-emerald-300 text-emerald-900{% endif %}">
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {# ======================================================================== #}
+  {# CONTENIDO PRINCIPAL DE CADA VISTA                                       #}
+  {# ======================================================================== #}
+  <main id="contenido-principal" class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ======================================================================== #}
+  {# BLOQUE DE BANNER INFERIOR (SLOT: FOOTER_LEADERBOARD)                    #}
+  {# ======================================================================== #}
+  {% block banner_footer %}
+    {% if banners_publicitarios.FOOTER_LEADERBOARD %}
+      <section aria-label="Espacio publicitario al pie" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-8">
+        {% include "includes/banner_slot.html" with anuncio=banners_publicitarios.FOOTER_LEADERBOARD slot_codigo="FOOTER_LEADERBOARD" %}
+      </section>
+    {% endif %}
+  {% endblock %}
+
+  {# ======================================================================== #}
+  {# PIE DE PÁGINA + CAPTURA DE NEWSLETTER CON TOKEN CSRF                    #}
+  {# ======================================================================== #}
+  <footer class="bg-papel-secundario border-t border-papel-borde mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-10 border-b border-papel-borde">
+        {# Columna Editorial #}
+        <div class="lg:col-span-5">
+          <div class="font-serif text-2xl font-bold text-tinta-primaria mb-3">
+            {{ seo_global.site_name|default:"Diario Digital Tecnológico" }}
+          </div>
+          <p class="text-sm text-tinta-secundaria leading-relaxed mb-4">
+            Periodismo técnico independiente especializado en arquitectura de semiconductores, inteligencia artificial soberana, criptografía post-cuántica e ingeniería de software de alto rendimiento.
+          </p>
+          <div class="text-xs font-mono text-tinta-atenuada">
+            ISSN Digital en trámite · Publicación auditada con Django 5.1 &amp; MySQL 8.0
+          </div>
+        </div>
+
+        {# Columna de Secciones y Enlaces Técnicos #}
+        <div class="lg:col-span-3">
+          <h2 class="text-xs font-mono uppercase tracking-widest text-tinta-primaria font-semibold mb-4">
+            Secciones y Sindicación
+          </h2>
+          <ul class="space-y-2 text-sm text-tinta-secundaria">
+            {% for cat in categorias_menu %}
+              <li>
+                <a href="{% url 'noticias:por_categoria' cat.slug %}" class="hover:text-editorial-terracota transition-colors">
+                  {{ cat.nombre }}
+                </a>
+              </li>
+            {% endfor %}
+            <li class="pt-2 border-t border-papel-elevado">
+              <a href="{% url 'django.contrib.sitemaps.views.sitemap' %}" class="font-mono text-xs hover:text-editorial-terracota">
+                Sitemap XML (SEO)
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'robots_txt' %}" class="font-mono text-xs hover:text-editorial-terracota">
+                Directivas robots.txt
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {# Columna de Suscripción al Newsletter (Conectado con API/Webhook) #}
+        <div class="lg:col-span-4">
+          <div class="p-6 bg-papel-base border border-papel-borde rounded">
+            <div class="text-[11px] font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-1">
+              Boletín Semanal de Ingeniería
+            </div>
+            <h2 class="font-serif text-lg font-semibold text-tinta-primaria mb-2">
+              Recibe nuestros análisis técnicos cada viernes
+            </h2>
+            <p class="text-xs text-tinta-secundaria leading-relaxed mb-4">
+              Sin ruido publicitario. Sincronización directa y baja en un clic mediante token único UUID.
+            </p>
+            <form action="{% url 'newsletter:suscribir' %}" method="post" class="space-y-3">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+              <div>
+                <label for="newsletter-nombre" class="block text-xs font-medium text-tinta-primaria mb-1">
+                  Nombre completo (opcional)
+                </label>
+                <input
+                  id="newsletter-nombre"
+                  type="text"
+                  name="nombre"
+                  maxlength="120"
+                  placeholder="Ej. Ing. Valeria Quiroga"
+                  class="w-full px-3 py-2 text-xs bg-papel-secundario border border-papel-borde rounded focus:outline-none focus:border-tinta-primaria"
+                />
+              </div>
+              <div>
+                <label for="newsletter-email" class="block text-xs font-medium text-tinta-primaria mb-1">
+                  Correo electrónico profesional *
+                </label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="nombre@empresa.com"
+                  class="w-full px-3 py-2 text-xs bg-papel-secundario border border-papel-borde rounded focus:outline-none focus:border-tinta-primaria"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full py-2.5 px-4 text-xs font-medium bg-tinta-primaria text-papel-base rounded hover:bg-editorial-terracota transition-colors">
+                Suscribirme al Boletín Técnico
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-tinta-atenuada">
+        <p>© {% now "Y" %} {{ seo_global.site_name|default:"Diario Digital Tecnológico" }}. Todos los derechos reservados.</p>
+        <p class="font-mono">Optimizado con imágenes WebP (Pillow LANCZOS) y consultas MySQL 8.0 sin N+1.</p>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

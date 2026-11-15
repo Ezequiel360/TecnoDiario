@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block meta_title %}{{ meta_title|default:categoria_actual.nombre }} | {{ seo_global.site_name|default:"Diario Digital Tecnológico" }}{% endblock %}
+{% block meta_description %}{{ meta_description|default:categoria_actual.descripcion }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+  {# Cabecera de la Categoría / Etiqueta / Autor #}
+  <header class="pb-8 mb-10 border-b border-papel-borde">
+    {% if categoria_actual %}
+      <div class="text-xs font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-2">
+        Sección Editorial · Cobertura Especializada
+      </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-tinta-primaria mb-3">
+        {{ categoria_actual.nombre }}
+      </h1>
+      {% if categoria_actual.descripcion %}
+        <p class="text-base text-tinta-secundaria max-w-3xl leading-relaxed">
+          {{ categoria_actual.descripcion }}
+        </p>
+      {% endif %}
+    {% elif etiqueta_actual %}
+      <div class="text-xs font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-2">
+        Archivo Temático por Etiqueta (Tag)
+      </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-tinta-primaria mb-2">
+        #{{ etiqueta_actual.nombre }}
+      </h1>
+      <p class="text-sm text-tinta-secundaria">
+        Artículos técnicos e investigaciones etiquetadas bajo el descriptor <strong>#{{ etiqueta_actual.nombre }}</strong>.
+      </p>
+    {% elif autor_actual %}
+      <div class="text-xs font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-2">
+        Perfil Público del Periodista · {{ autor_actual.get_rol_display }}
+      </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-tinta-primaria mb-2">
+        {{ autor_actual.nombre_completo_editorial }}
+      </h1>
+      {% if autor_actual.especialidad %}
+        <p class="text-xs font-mono text-tinta-atenuada mb-3">{{ autor_actual.especialidad }}</p>
+      {% endif %}
+      <p class="text-base text-tinta-secundaria max-w-3xl leading-relaxed">
+        {{ autor_actual.biografia_corta }}
+      </p>
+    {% endif %}
+  </header>
+
+  {# Grilla Responsive de Noticias (3 Columnas en Desktop, 2 en Tablet, 1 en Móvil) #}
+  <section aria-label="Listado de artículos">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for articulo in noticias %}
+        <article class="flex flex-col justify-between pb-6 border-b border-papel-elevado">
+          <div>
+            {% if articulo.imagen_principal %}
+              <a href="{{ articulo.get_absolute_url }}" class="block overflow-hidden rounded border border-papel-borde mb-4 bg-papel-elevado">
+                <img
+                  src="{{ articulo.imagen_principal.url }}"
+                  alt="{{ articulo.imagen_alt|default:articulo.titulo }}"
+                  loading="lazy"
+                  class="w-full aspect-[4/3] object-cover hover:scale-[1.02] transition-transform duration-300"
+                />
+              </a>
+            {% endif %}
+
+            <div class="flex flex-wrap items-center gap-2 text-xs mb-2">
+              <a href="{% url 'noticias:por_categoria' articulo.categoria.slug %}"
+                 class="font-mono uppercase tracking-wider font-semibold text-editorial-terracota hover:underline">
+                {{ articulo.categoria.nombre }}
+              </a>
+              <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+              <time datetime="{{ articulo.fecha_publicacion|date:'c' }}" class="text-tinta-secundaria">
+                {{ articulo.fecha_publicacion|date:"d M Y" }}
+              </time>
+              <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+              <span class="font-mono text-tinta-atenuada">{{ articulo.tiempo_lectura_minutos }} min</span>
+            </div>
+
+            <h2 class="font-serif text-xl font-bold text-tinta-primaria leading-snug mb-2.5">
+              <a href="{{ articulo.get_absolute_url }}" class="hover:text-editorial-terracota transition-colors">
+                {{ articulo.titulo }}
+              </a>
+            </h2>
+
+            <p class="text-sm text-tinta-secundaria leading-relaxed line-clamp-3 mb-4">
+              {{ articulo.bajada }}
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-papel-elevado flex items-center justify-between text-xs text-tinta-atenuada">
+            <a href="{% url 'noticias:por_autor' articulo.autor.slug %}" class="font-medium text-tinta-primaria hover:underline">
+              {{ articulo.autor.nombre_completo_editorial }}
+            </a>
+            <span class="font-mono">{{ articulo.vistas_totales|intcomma }} vistas</span>
+          </div>
+        </article>
+      {% empty %}
+        <div class="col-span-full p-10 bg-papel-secundario border border-papel-borde rounded text-center">
+          <h2 class="font-serif text-xl font-bold text-tinta-primaria mb-2">
+            Aún no hay publicaciones disponibles en esta sección
+          </h2>
+          <p class="text-sm text-tinta-secundaria mb-4">
+            Nuestro equipo editorial está preparando nuevos análisis técnicos.
+          </p>
+          <a href="{% url 'noticias:portada' %}"
+             class="inline-block px-4 py-2 text-xs font-medium bg-tinta-primaria text-papel-base rounded">
+            Volver a la Portada Principal
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    {# Controles de Paginación SEO #}
+    {% if is_paginated %}
+      <nav aria-label="Paginación de sección" class="mt-10 pt-6 border-t border-papel-borde flex items-center justify-between text-xs font-mono">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}"
+             class="px-4 py-2 bg-papel-secundario border border-papel-borde rounded hover:border-tinta-primaria transition-colors">
+            ← Anterior
+          </a>
+        {% else %}
+          <span class="px-4 py-2 text-tinta-atenuada">← Anterior</span>
+        {% endif %}
+
+        <span class="text-tinta-secundaria">
+          Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}"
+             class="px-4 py-2 bg-papel-secundario border border-papel-borde rounded hover:border-tinta-primaria transition-colors">
+            Siguiente →
+          </a>
+        {% else %}
+          <span class="px-4 py-2 text-tinta-atenuada">Siguiente →</span>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

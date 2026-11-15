@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block meta_title %}{{ seo_global.site_name|default:"Diario Digital Tecnológico" }} — Portada de Ingeniería, IA, Hardware y Ciberseguridad{% endblock %}
+{% block meta_description %}{{ seo_global.meta_description_default|default:"Últimas noticias tecnológicas, análisis de semiconductores, inteligencia artificial, ciberseguridad y desarrollo de software." }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+  {# ======================================================================== #}
+  {# NIVEL 1 DE JERARQUÍA: NOTICIA PRINCIPAL DESTACADA (HERO DE PORTADA)     #}
+  {# ======================================================================== #}
+  {% if noticia_hero %}
+    <section aria-label="Noticia principal de portada" class="pb-10 mb-10 border-b border-papel-borde">
+      <article class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {# Columna Editorial Hero (7 columnas en Desktop) #}
+        <div class="lg:col-span-7 flex flex-col justify-between">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 text-xs mb-3">
+              <a href="{% url 'noticias:por_categoria' noticia_hero.categoria.slug %}"
+                 class="font-mono uppercase tracking-wider font-semibold text-editorial-terracota hover:underline">
+                Tema de Portada · {{ noticia_hero.categoria.nombre }}
+              </a>
+              <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+              <time datetime="{{ noticia_hero.fecha_publicacion|date:'c' }}" class="text-tinta-secundaria">
+                {{ noticia_hero.fecha_publicacion|date:"d M Y" }}
+              </time>
+              <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+              <span class="font-mono text-tinta-atenuada">{{ noticia_hero.tiempo_lectura_minutos }} min lectura</span>
+            </div>
+
+            <h1 class="font-serif text-3xl sm:text-4xl lg:text-[42px] font-bold text-tinta-primaria leading-[1.12] tracking-tight mb-4">
+              <a href="{{ noticia_hero.get_absolute_url }}" class="hover:text-editorial-terracota transition-colors">
+                {{ noticia_hero.titulo }}
+              </a>
+            </h1>
+
+            <p class="text-base sm:text-lg text-tinta-secundaria leading-relaxed mb-6">
+              {{ noticia_hero.bajada }}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-papel-elevado flex flex-wrap items-center justify-between gap-4">
+            <div class="text-xs text-tinta-secundaria">
+              Por
+              <a href="{% url 'noticias:por_autor' noticia_hero.autor.slug %}" class="font-semibold text-tinta-primaria hover:underline">
+                {{ noticia_hero.autor.nombre_completo_editorial }}
+              </a>
+              {% if noticia_hero.autor.especialidad %}
+                <span class="text-tinta-atenuada">· {{ noticia_hero.autor.especialidad }}</span>
+              {% endif %}
+            </div>
+
+            <a href="{{ noticia_hero.get_absolute_url }}"
+               class="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium bg-tinta-primaria text-papel-base rounded hover:bg-editorial-terracota transition-colors">
+              <span>Leer reportaje completo</span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+
+        {# Columna Fotográfica Hero Optimizada en WebP (5 columnas en Desktop) #}
+        <figure class="lg:col-span-5">
+          {% if noticia_hero.imagen_principal %}
+            <a href="{{ noticia_hero.get_absolute_url }}" class="block overflow-hidden rounded border border-papel-borde bg-papel-elevado">
+              <img
+                src="{{ noticia_hero.imagen_principal.url }}"
+                alt="{{ noticia_hero.imagen_alt|default:noticia_hero.titulo }}"
+                width="1600"
+                height="900"
+                fetchpriority="high"
+                class="w-full aspect-video object-cover hover:scale-[1.01] transition-transform duration-300"
+              />
+            </a>
+          {% endif %}
+          {% if noticia_hero.epigrafe %}
+            <figcaption class="mt-2 text-xs font-serif italic text-tinta-atenuada">
+              {{ noticia_hero.epigrafe }}
+            </figcaption>
+          {% endif %}
+        </figure>
+      </article>
+    </section>
+  {% endif %}
+
+  {# ======================================================================== #}
+  {# NIVEL 2 DE JERARQUÍA: GRILLA DE NOTICIAS SECUNDARIAS DESTACADAS (3 COL) #}
+  {# ======================================================================== #}
+  {% if noticias_secundarias %}
+    <section aria-label="Noticias secundarias destacadas" class="pb-10 mb-10 border-b border-papel-borde">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="font-serif text-2xl font-bold text-tinta-primaria">
+          Análisis e Investigaciones Destacadas
+        </h2>
+        <span class="text-xs font-mono text-tinta-atenuada hidden sm:inline">
+          Selección del Consejo Editorial
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for nota in noticias_secundarias %}
+          <article class="flex flex-col justify-between border-b border-papel-elevado pb-6">
+            <div>
+              {% if nota.imagen_principal %}
+                <a href="{{ nota.get_absolute_url }}" class="block overflow-hidden rounded border border-papel-borde mb-4 bg-papel-elevado">
+                  <img
+                    src="{{ nota.imagen_principal.url }}"
+                    alt="{{ nota.imagen_alt|default:nota.titulo }}"
+                    loading="lazy"
+                    class="w-full aspect-[4/3] object-cover hover:scale-[1.02] transition-transform duration-300"
+                  />
+                </a>
+              {% endif %}
+
+              <div class="flex items-center gap-2 text-xs mb-2">
+                <a href="{% url 'noticias:por_categoria' nota.categoria.slug %}"
+                   class="font-mono uppercase tracking-wider font-semibold text-editorial-terracota hover:underline">
+                  {{ nota.categoria.nombre }}
+                </a>
+                <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+                <time datetime="{{ nota.fecha_publicacion|date:'c' }}" class="text-tinta-secundaria">
+                  {{ nota.fecha_publicacion|date:"d M Y" }}
+                </time>
+                <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+                <span class="font-mono text-tinta-atenuada">{{ nota.tiempo_lectura_minutos }} min</span>
+              </div>
+
+              <h3 class="font-serif text-xl font-bold text-tinta-primaria leading-snug mb-2.5">
+                <a href="{{ nota.get_absolute_url }}" class="hover:text-editorial-terracota transition-colors">
+                  {{ nota.titulo }}
+                </a>
+              </h3>
+
+              <p class="text-sm text-tinta-secundaria leading-relaxed line-clamp-3 mb-4">
+                {{ nota.bajada }}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-papel-elevado flex items-center justify-between text-xs text-tinta-atenuada">
+              <a href="{% url 'noticias:por_autor' nota.autor.slug %}" class="font-medium text-tinta-primaria hover:underline">
+                {{ nota.autor.nombre_completo_editorial }}
+              </a>
+              <div class="flex items-center gap-1.5 font-mono text-[11px]">
+                {% for tag in nota.etiquetas.all|slice:":2" %}
+                  <a href="{% url 'noticias:por_etiqueta' tag.slug %}" class="hover:text-editorial-terracota">
+                    #{{ tag.nombre }}
+                  </a>
+                  {% if not forloop.last %}<span aria-hidden="true">·</span>{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {# ======================================================================== #}
+  {# BLOQUE DE BANNER INTERMEDIO EN PORTADA (SLOT: HOME_MID)                 #}
+  {# ======================================================================== #}
+  {% if banners_publicitarios.HOME_MID %}
+    <div class="mb-10">
+      {% include "includes/banner_slot.html" with anuncio=banners_publicitarios.HOME_MID slot_codigo="HOME_MID" %}
+    </div>
+  {% endif %}
+
+  {# ======================================================================== #}
+  {# NIVEL 3: ÚLTIMAS NOTICIAS PUBLICADAS (8 COL) + SIDEBAR (4 COL)          #}
+  {# ======================================================================== #}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    {# Feed Cronológico con Paginación #}
+    <section aria-label="Últimas noticias publicadas" class="lg:col-span-8">
+      <div class="flex items-baseline justify-between pb-3 mb-6 border-b border-papel-borde">
+        <h2 class="font-serif text-2xl font-bold text-tinta-primaria">
+          Últimas Noticias Publicadas
+        </h2>
+        <span class="text-xs font-mono text-tinta-atenuada">
+          Actualización continua
+        </span>
+      </div>
+
+      <div class="divide-y divide-papel-elevado">
+        {% for articulo in ultimas_noticias %}
+          <article class="py-6 first:pt-0 flex flex-col sm:flex-row gap-6 items-start justify-between">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2 text-xs mb-2">
+                <a href="{% url 'noticias:por_categoria' articulo.categoria.slug %}"
+                   class="font-mono uppercase tracking-wider font-semibold text-editorial-terracota hover:underline">
+                  {{ articulo.categoria.nombre }}
+                </a>
+                <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+                <time datetime="{{ articulo.fecha_publicacion|date:'c' }}" class="text-tinta-secundaria">
+                  {{ articulo.fecha_publicacion|date:"d M Y, H:i" }}
+                </time>
+                <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+                <span class="font-mono text-tinta-atenuada">{{ articulo.tiempo_lectura_minutos }} min lectura</span>
+                <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+                <a href="{% url 'noticias:por_autor' articulo.autor.slug %}" class="text-tinta-primaria font-medium hover:underline">
+                  {{ articulo.autor.nombre_completo_editorial }}
+                </a>
+              </div>
+
+              <h3 class="font-serif text-xl font-bold text-tinta-primaria leading-snug mb-2">
+                <a href="{{ articulo.get_absolute_url }}" class="hover:text-editorial-terracota transition-colors">
+                  {{ articulo.titulo }}
+                </a>
+              </h3>
+
+              <p class="text-sm text-tinta-secundaria leading-relaxed mb-3">
+                {{ articulo.bajada }}
+              </p>
+
+              <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-tinta-atenuada">
+                {% for tag in articulo.etiquetas.all %}
+                  <a href="{% url 'noticias:por_etiqueta' tag.slug %}" class="hover:text-editorial-terracota">
+                    #{{ tag.nombre }}
+                  </a>
+                  {% if not forloop.last %}<span aria-hidden="true">·</span>{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+
+            {% if articulo.imagen_principal %}
+              <a href="{{ articulo.get_absolute_url }}" class="w-full sm:w-44 shrink-0 overflow-hidden rounded border border-papel-borde bg-papel-elevado">
+                <img
+                  src="{{ articulo.imagen_principal.url }}"
+                  alt="{{ articulo.imagen_alt|default:articulo.titulo }}"
+                  loading="lazy"
+                  class="w-full aspect-[4/3] object-cover hover:scale-[1.02] transition-transform duration-300"
+                />
+              </a>
+            {% endif %}
+          </article>
+        {% empty %}
+          <div class="p-8 bg-papel-secundario border border-papel-borde rounded text-center">
+            <p class="font-serif text-lg text-tinta-primaria mb-1">No hay artículos adicionales en esta página.</p>
+            <p class="text-xs text-tinta-secundaria">Explora nuestras categorías en el menú superior.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# Paginación SEO de Portada #}
+      {% if is_paginated %}
+        <nav aria-label="Paginación de portada" class="mt-8 pt-6 border-t border-papel-borde flex items-center justify-between text-xs font-mono">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="px-4 py-2 bg-papel-secundario border border-papel-borde rounded hover:border-tinta-primaria transition-colors">
+              ← Página anterior
+            </a>
+          {% else %}
+            <span class="px-4 py-2 text-tinta-atenuada">← Página anterior</span>
+          {% endif %}
+
+          <span class="text-tinta-secundaria">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="px-4 py-2 bg-papel-secundario border border-papel-borde rounded hover:border-tinta-primaria transition-colors">
+              Siguiente página →
+            </a>
+          {% else %}
+            <span class="px-4 py-2 text-tinta-atenuada">Siguiente página →</span>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </section>
+
+    {# Sidebar Lateral: Más Leídas de la Semana + Banner Sticky #}
+    <aside aria-label="Tendencias de lectura y boletín" class="lg:col-span-4 space-y-8">
+      {% if mas_leidas %}
+        <div class="p-6 bg-papel-secundario border border-papel-borde rounded">
+          <div class="text-[11px] font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-1">
+            Lecturas de Mayor Impacto
+          </div>
+          <h2 class="font-serif text-xl font-bold text-tinta-primaria pb-3 mb-4 border-b border-papel-borde">
+            Más Leídas de la Semana
+          </h2>
+          <ol class="space-y-4">
+            {% for popular in mas_leidas %}
+              <li class="flex items-start gap-3 pb-3 border-b border-papel-elevado last:border-b-0 last:pb-0">
+                <span class="font-mono text-lg font-bold text-editorial-terracota leading-none mt-0.5">
+                  0{{ forloop.counter }}
+                </span>
+                <div>
+                  <a href="{{ popular.get_absolute_url }}" class="font-serif text-sm font-semibold text-tinta-primaria hover:text-editorial-terracota leading-snug block mb-1">
+                    {{ popular.titulo }}
+                  </a>
+                  <span class="text-[11px] font-mono text-tinta-atenuada">
+                    {{ popular.vistas_totales|intcomma }} lecturas
+                  </span>
+                </div>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+      {% endif %}
+
+      {% if banners_publicitarios.SIDEBAR_STICKY %}
+        <div class="sticky top-28">
+          {% include "includes/banner_slot.html" with anuncio=banners_publicitarios.SIDEBAR_STICKY slot_codigo="SIDEBAR_STICKY" %}
+        </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

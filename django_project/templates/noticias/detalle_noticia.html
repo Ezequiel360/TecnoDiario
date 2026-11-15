@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{# ========================================================================== #}
+{# METADATOS SEO Y OPEN GRAPH DINÁMICOS DE LA NOTICIA INDIVIDUAL              #}
+{# ========================================================================== #}
+{% block meta_title %}{{ meta_title }} | {{ seo_global.site_name|default:"Diario Digital Tecnológico" }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block og_type %}{{ og_type|default:"article" }}{% endblock %}
+{% block og_title %}{{ meta_title }}{% endblock %}
+{% block og_description %}{{ meta_description }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+{% block og_image %}{% if og_image %}{{ og_image }}{% elif noticia.imagen_principal %}{{ request.scheme }}://{{ request.get_host }}{{ noticia.imagen_principal.url }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ meta_title }}{% endblock %}
+{% block twitter_description %}{{ meta_description }}{% endblock %}
+{% block twitter_image %}{% if og_image %}{{ og_image }}{% elif noticia.imagen_principal %}{{ request.scheme }}://{{ request.get_host }}{{ noticia.imagen_principal.url }}{% endif %}{% endblock %}
+
+{% block extra_head %}
+  <meta property="article:published_time" content="{{ noticia.fecha_publicacion|date:'c' }}" />
+  <meta property="article:modified_time" content="{{ noticia.actualizado_en|date:'c' }}" />
+  <meta property="article:section" content="{{ noticia.categoria.nombre }}" />
+  {% for tag in noticia.etiquetas.all %}
+    <meta property="article:tag" content="{{ tag.nombre }}" />
+  {% endfor %}
+
+  {# Datos Estructurados Schema.org NewsArticle (JSON-LD) para Google News #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "{{ noticia.titulo|escapejs }}",
+    "description": "{{ noticia.bajada|escapejs }}",
+    "datePublished": "{{ noticia.fecha_publicacion|date:'c' }}",
+    "dateModified": "{{ noticia.actualizado_en|date:'c' }}",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{ canonical_url }}"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "{{ noticia.autor.nombre_completo_editorial|escapejs }}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'noticias:por_autor' noticia.autor.slug %}"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "{{ seo_global.site_name|default:'Diario Digital Tecnológico'|escapejs }}"
+    }
+    {% if noticia.imagen_principal %},
+    "image": ["{{ request.scheme }}://{{ request.get_host }}{{ noticia.imagen_principal.url }}"]
+    {% endif %}
+  }
+  </script>
+{% endblock %}
+
+{% block content %}
+<article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+  {# Migas de Pan Semánticas (Breadcrumbs) #}
+  <nav aria-label="Ruta de navegación" class="text-xs font-mono text-tinta-atenuada mb-6 flex flex-wrap items-center gap-2">
+    <a href="{% url 'noticias:portada' %}" class="hover:text-tinta-primaria">Portada</a>
+    <span aria-hidden="true">/</span>
+    <a href="{% url 'noticias:por_categoria' noticia.categoria.slug %}" class="text-editorial-terracota font-semibold hover:underline">
+      {{ noticia.categoria.nombre }}
+    </a>
+    <span aria-hidden="true">/</span>
+    <span class="text-tinta-secundaria truncate max-w-xs sm:max-w-md">{{ noticia.titulo }}</span>
+  </nav>
+
+  {# Cabecera Editorial del Artículo #}
+  <header class="pb-8 mb-8 border-b border-papel-borde">
+    <div class="flex flex-wrap items-center gap-2 text-xs mb-4">
+      <a href="{% url 'noticias:por_categoria' noticia.categoria.slug %}"
+         class="font-mono uppercase tracking-wider font-semibold text-editorial-terracota hover:underline">
+        {{ noticia.categoria.nombre }}
+      </a>
+      <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+      <time datetime="{{ noticia.fecha_publicacion|date:'c' }}" class="text-tinta-secundaria">
+        Publicado el {{ noticia.fecha_publicacion|date:"d \d\e F \d\e Y, H:i" }}
+      </time>
+      <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+      <span class="font-mono text-tinta-atenuada">{{ noticia.tiempo_lectura_minutos }} min de lectura</span>
+      <span aria-hidden="true" class="text-tinta-atenuada">·</span>
+      <span class="font-mono text-tinta-atenuada">{{ noticia.vistas_totales|intcomma }} lecturas</span>
+    </div>
+
+    <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-tinta-primaria leading-[1.12] tracking-tight mb-5">
+      {{ noticia.titulo }}
+    </h1>
+
+    <p class="text-lg sm:text-xl text-tinta-secundaria leading-relaxed mb-6">
+      {{ noticia.bajada }}
+    </p>
+
+    {# Firma del Autor y Metadatos Técnicos #}
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-5 border-t border-papel-elevado">
+      <div class="flex items-center gap-3">
+        {% if noticia.autor.avatar %}
+          <img
+            src="{{ noticia.autor.avatar.url }}"
+            alt="{{ noticia.autor.nombre_completo_editorial }}"
+            class="w-11 h-11 rounded-full object-cover border border-papel-borde"
+          />
+        {% else %}
+          <div class="w-11 h-11 rounded-full bg-tinta-primaria text-papel-base flex items-center justify-center font-serif font-bold text-sm">
+            {{ noticia.autor.first_name|slice:":1" }}{{ noticia.autor.last_name|slice:":1" }}
+          </div>
+        {% endif %}
+        <div>
+          <div class="text-sm font-semibold text-tinta-primaria">
+            Por <a href="{% url 'noticias:por_autor' noticia.autor.slug %}" class="hover:text-editorial-terracota underline decoration-papel-borde">
+              {{ noticia.autor.nombre_completo_editorial }}
+            </a>
+          </div>
+          <div class="text-xs text-tinta-atenuada">
+            {{ noticia.autor.especialidad|default:"Redacción de Ingeniería y Tecnología" }}
+          </div>
+        </div>
+      </div>
+
+      {% if noticia.fuente_original %}
+        <div class="text-xs font-mono text-tinta-atenuada">
+          Fuente primaria:
+          {% if noticia.url_fuente %}
+            <a href="{{ noticia.url_fuente }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-editorial-terracota">
+              {{ noticia.fuente_original }} ↗
+            </a>
+          {% else %}
+            <span>{{ noticia.fuente_original }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  {# Imagen Principal Optimizada en WebP (Pillow LANCZOS) #}
+  {% if noticia.imagen_principal %}
+    <figure class="mb-10">
+      <div class="overflow-hidden rounded border border-papel-borde bg-papel-elevado">
+        <img
+          src="{{ noticia.imagen_principal.url }}"
+          alt="{{ noticia.imagen_alt|default:noticia.titulo }}"
+          width="1600"
+          height="900"
+          class="w-full max-h-[540px] object-cover"
+        />
+      </div>
+      {% if noticia.epigrafe %}
+        <figcaption class="mt-2.5 text-xs font-serif italic text-tinta-atenuada">
+          {{ noticia.epigrafe }}
+        </figcaption>
+      {% endif %}
+    </figure>
+  {% endif %}
+
+  {# Layout de Lectura: Cuerpo Rich Text (8 Col) + Columna Lateral (4 Col) #}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <div class="lg:col-span-8">
+      {# Contenido Rich Text Sanitizado desde CKEditor 5 #}
+      <div class="prose prose-stone prose-lg max-w-none prose-headings:font-serif prose-headings:text-tinta-primaria prose-a:text-editorial-terracota prose-blockquote:border-editorial-terracota prose-blockquote:bg-papel-secundario prose-blockquote:py-2 prose-blockquote:px-4 prose-code:font-mono prose-code:text-sm">
+        {{ noticia.contenido|safe }}
+      </div>
+
+      {# Espacio Publicitario Inline dentro del Artículo (SLOT: ARTICLE_INLINE) #}
+      {% if banners_publicitarios.ARTICLE_INLINE %}
+        <div class="my-10">
+          {% include "includes/banner_slot.html" with anuncio=banners_publicitarios.ARTICLE_INLINE slot_codigo="ARTICLE_INLINE" %}
+        </div>
+      {% endif %}
+
+      {# Etiquetas (Tags) de la Noticia #}
+      {% if noticia.etiquetas.all %}
+        <section aria-label="Etiquetas del artículo" class="mt-10 pt-6 border-t border-papel-borde">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span class="uppercase tracking-wider text-tinta-atenuada font-semibold mr-2">Etiquetas:</span>
+            {% for tag in noticia.etiquetas.all %}
+              <a href="{% url 'noticias:por_etiqueta' tag.slug %}"
+                 class="px-3 py-1 bg-papel-secundario border border-papel-borde rounded text-tinta-primaria hover:border-editorial-terracota hover:text-editorial-terracota transition-colors">
+                #{{ tag.nombre }}
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endif %}
+
+      {# Tarjeta de Perfil del Autor #}
+      <section aria-label="Acerca del autor" class="mt-8 p-6 bg-papel-secundario border border-papel-borde rounded">
+        <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <div>
+            <div class="text-[11px] font-mono uppercase tracking-widest text-editorial-terracota font-semibold mb-1">
+              Sobre la Firma Editorial
+            </div>
+            <h2 class="font-serif text-xl font-bold text-tinta-primaria mb-1">
+              <a href="{% url 'noticias:por_autor' noticia.autor.slug %}" class="hover:text-editorial-terracota">
+                {{ noticia.autor.nombre_completo_editorial }}
+              </a>
+            </h2>
+            {% if noticia.autor.especialidad %}
+              <p class="text-xs font-mono text-tinta-atenuada mb-2">{{ noticia.autor.especialidad }}</p>
+            {% endif %}
+            <p class="text-sm text-tinta-secundaria leading-relaxed">
+              {{ noticia.autor.biografia_corta|default:"Periodista y analista especializado en tecnologías emergentes, infraestructura crítica y sistemas distribuidos." }}
+            </p>
+          </div>
+          <a href="{% url 'noticias:por_autor' noticia.autor.slug %}"
+             class="shrink-0 px-3.5 py-2 text-xs font-medium bg-papel-base border border-papel-borde rounded hover:border-tinta-primaria transition-colors">
+            Ver archivo del autor →
+          </a>
+        </div>
+      </section>
+    </div>
+
+    {# Sidebar del Artículo #}
+    <aside aria-label="Información complementaria del artículo" class="lg:col-span-4 space-y-8">
+      {% if banners_publicitarios.SIDEBAR_STICKY %}
+        <div class="sticky top-28">
+          {% include "includes/banner_slot.html" with anuncio=banners_publicitarios.SIDEBAR_STICKY slot_codigo="SIDEBAR_STICKY" %}
+        </div>
+      {% endif %}
+    </aside>
+  </div>
+
+  {# ======================================================================== #}
+  {# NOTICIAS RELACIONADAS (Misma Categoría o Etiquetas Compartidas)          #}
+  {# ======================================================================== #}
+  {% if noticias_relacionadas %}
+    <section aria-label="Noticias relacionadas" class="mt-14 pt-10 border-t border-papel-borde">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="font-serif text-2xl font-bold text-tinta-primaria">
+          Lecturas Relacionadas en {{ noticia.categoria.nombre }}
+        </h2>
+        <a href="{% url 'noticias:por_categoria' noticia.categoria.slug %}"
+           class="text-xs font-mono text-editorial-terracota hover:underline">
+          Ver toda la sección →
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {% for rel in noticias_relacionadas %}
+          <article class="flex flex-col justify-between p-5 bg-papel-secundario border border-papel-borde rounded">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-tinta-atenuada font-mono mb-2">
+                <span>{{ rel.categoria.nombre }}</span>
+                <span aria-hidden="true">·</span>
+                <time datetime="{{ rel.fecha_publicacion|date:'c' }}">{{ rel.fecha_publicacion|date:"d M Y" }}</time>
+              </div>
+              <h3 class="font-serif text-lg font-bold text-tinta-primaria leading-snug mb-2">
+                <a href="{{ rel.get_absolute_url }}" class="hover:text-editorial-terracota transition-colors">
+                  {{ rel.titulo }}
+                </a>
+              </h3>
+              <p class="text-xs text-tinta-secundaria line-clamp-3 mb-4">
+                {{ rel.bajada }}
+              </p>
+            </div>
+            <a href="{{ rel.get_absolute_url }}" class="text-xs font-mono font-semibold text-editorial-terracota hover:underline">
+              Leer nota ({{ rel.tiempo_lectura_minutos }} min) →
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</article>
+{% endblock %}

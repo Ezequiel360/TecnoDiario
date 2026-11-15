@@ -1,0 +1,39 @@
+{% comment %}
+Componente reutilizable para renderizar un espacio publicitario activo y vigente.
+Recibe:
+  - anuncio: instancia de apps.publicidad.models.Anuncio
+  - slot_codigo: identificador del espacio (ej. HOME_MID, SIDEBAR_STICKY, ARTICLE_INLINE)
+{% endcomment %}
+{% if anuncio %}
+<aside aria-label="Espacio publicitario {{ slot_codigo|default:'Patrocinado' }}"
+       class="p-5 sm:p-6 bg-papel-secundario border border-papel-borde rounded flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+  <div class="space-y-1.5">
+    <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-tinta-atenuada">
+      <span class="text-editorial-terracota font-semibold">Espacio Publicitario ({{ slot_codigo|default:anuncio.espacio.codigo }})</span>
+      <span aria-hidden="true">·</span>
+      <span>Patrocinado por {{ anuncio.cliente }}</span>
+      <span aria-hidden="true">·</span>
+      <span>Vigencia hasta {{ anuncio.fecha_fin|date:"d/m/Y" }}</span>
+    </div>
+    <h3 class="font-serif text-lg sm:text-xl font-semibold text-tinta-primaria">
+      {{ anuncio.titulo }}
+    </h3>
+  </div>
+
+  {% if anuncio.codigo_html_externo %}
+    <div class="w-full md:w-auto overflow-hidden">
+      {{ anuncio.codigo_html_externo|safe }}
+    </div>
+  {% else %}
+    <div class="flex items-center gap-4 shrink-0">
+      <a href="{% url 'publicidad:registrar_clic' anuncio.pk %}"
+         target="_blank"
+         rel="sponsored noopener noreferrer"
+         class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium bg-tinta-primaria text-papel-base rounded hover:bg-editorial-terracota transition-colors">
+        <span>Visitar patrocinador</span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  {% endif %}
+</aside>
+{% endif %}
